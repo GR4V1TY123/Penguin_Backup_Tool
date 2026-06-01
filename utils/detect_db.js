@@ -20,7 +20,15 @@ const check_postgres_connection = async (config) => {
     } catch (error) {
         error_message = error.message;
     } finally {
-        await postgres_client.end();
+        if(postgres_client) {
+            await postgres_client.end().catch(err => {
+                logger.error('Failed to close PostgreSQL connection', {
+                    operation: 'close_postgres_connection',
+                    status: 'failure',
+                    error: err.message,
+                });
+            });
+        }
     }
     if (error_message) {
         return {
@@ -43,7 +51,13 @@ const check_mongo_connection = async (config) => {
     } catch (error) {
         error_message = error.message;
     } finally {
-        await mongo_client.close();
+        if(mongo_client) await mongo_client.close().catch(err => {
+            logger.error('Failed to close MongoDB connection', {
+                operation: 'close_mongo_connection',
+                status: 'failure',
+                error: err.message,
+            });
+        });
     }
     if (error_message) {
         return {
@@ -60,19 +74,17 @@ const check_mongo_connection = async (config) => {
 export const detect_db_type = async (config) => {
     const validate_spinner = ora('Checking Database...').start();
     let error_message;
-    for (let i = 0; i < 3; i++) {
-        const postgres_check = await check_postgres_connection(config);
-        if (postgres_check.success) {
-            validate_spinner.succeed('PostgreSQL Connection Verified!');
-            return "postgres";
-        }
-        const mongo_check = await check_mongo_connection(config);
-        if (mongo_check.success) {
-            validate_spinner.succeed('MongoDB Connection Verified!');
-            return "mongodb";
-        }
-        error_message = `${postgres_check.error} | ${mongo_check.error}`;
+    const postgres_check = await check_postgres_connection(config);
+    if (postgres_check.success) {
+        validate_spinner.succeed('PostgreSQL Connection Verified!');
+        return "postgres";
     }
+    const mongo_check = await check_mongo_connection(config);
+    if (mongo_check.success) {
+        validate_spinner.succeed('MongoDB Connection Verified!');
+        return "mongodb";
+    }
+    error_message = `${postgres_check.error} | ${mongo_check.error}`;
     logger.error('Unable to connect to the database with the provided credentials', {
         operation: "check_db",
         status: "failure",

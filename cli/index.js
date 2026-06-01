@@ -4,6 +4,12 @@ import config from "../config.json" with { type: "json" };
 import { detect_db_type } from "../utils/detect_db.js";
 import { get_adapter } from "../adapters/get_adapter.js";
 import { restore_main } from './../utils/restore_main.js';
+import dotenv from 'dotenv';
+import path from 'node:path';
+
+dotenv.config({
+    path: path.resolve("../.env")
+});
 
 colors.setTheme({
     silly: 'rainbow',

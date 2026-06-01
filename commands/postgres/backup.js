@@ -8,6 +8,7 @@ import { logger } from "../../utils/logger.js";
 import fs from "fs";
 import { run_process } from "../../utils/run_process.js";
 import {filesize, partial} from "filesize";
+import { uploadToS3 } from "../../utils/s3_upload.js";
 
 const make_backup = async (config, backup_location, file_type, backup_spinner) => {
     try {
@@ -80,6 +81,6 @@ export const backup_cmd = async (config) => {
     const backup_location = `${backup_path}\\${config.username}_${config.database}_${new Date().toISOString().slice(0, 19).replace(/[-:]/g, '')}${file_type}`;
     await make_backup(config, backup_location, file_type, backup_spinner);
     backup_spinner.succeed('Backup Created Successfully!');
-
     await compress_backup(backup_location);
+    await uploadToS3(backup_location + '.gz', config);
 };

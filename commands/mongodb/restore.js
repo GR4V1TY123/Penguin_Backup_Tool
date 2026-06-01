@@ -12,7 +12,7 @@ import { run_process } from '../../utils/run_process.js';
 // 1. Create temp db and restore backup to temp db
 // 2. Compare temp db with original db and show differences to user
 // 3. Ask user if they want to proceed with restore or rollback to old db
-// 4. If user wants to proceed with restore, drop original db and rename temp db to original db name
+// 4. If user wants to proceed, restore backup to original db and drop temp db
 // 5. If user wants to rollback, drop temp db and keep original db as is
 
 const compare_databases = async (config, temp_db_name, client) => {
@@ -86,7 +86,7 @@ const delete_db = async (config, client) => {
     }
 };
 
-const rename_temp_db = async (config, temp_db_name) => {
+const restore_to_original_db = async (config, temp_db_name) => {
     try {
         return await run_process('mongorestore', [
             "--host", config.host,
@@ -96,9 +96,9 @@ const rename_temp_db = async (config, temp_db_name) => {
         ]);
 
     } catch (err) {
-        logger.error(`Failed to rename ${temp_db_name} to ${config.database}`, {
+        logger.error(`Failed to restore to original database ${config.database}`, {
             status: 'failure',
-            operation: 'rename_temp_db',
+            operation: 'restore_to_original_db',
             error: err.message,
         });
         throw err;
@@ -145,7 +145,7 @@ export const restore_cmd = async (config) => {
 
     if (option === 'proceed') {
         await delete_db(config, client);
-        await rename_temp_db(config, temp_db_name);
+        await restore_to_original_db(config, temp_db_name);
         restore_spinner.info('Restored backup to ' + config.database + ' successfully');
         config.database = temp_db_name;
         await delete_db(config, client);

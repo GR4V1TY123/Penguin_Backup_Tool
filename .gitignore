@@ -9,3 +9,5 @@ task.txt
 backups/**/*
 logs/**/*
 temps/**/*
+config.json
+.env

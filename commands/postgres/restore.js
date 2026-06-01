@@ -107,7 +107,7 @@ const compare_databases = async (config, temp_db_name) => {
     }
 };
 
-const delete_db = (config) => {
+const delete_db = async (config) => {
     try {
         return await run_process('dropdb', [
             config.database,
@@ -131,7 +131,7 @@ const delete_db = (config) => {
     }
 };
 
-const create_temp_db = (config, temp_db_name) => {
+const create_temp_db = async (config, temp_db_name) => {
     try {
         return await run_process('createdb', [
             temp_db_name,
@@ -159,7 +159,7 @@ const restore_to_temp_db = async (config, temp_db_name, cmd, spinner) => {
     const start_time = Date.now();
     const psql_args = ["-U", config.username, "-h", config.host, "-p", config.port, "-d", temp_db_name, "-f", config.file];
     const pg_restore_args = ["-U", config.username, "-h", config.host, "-p", config.port, "-d", temp_db_name, config.file];
-    return run_process(cmd, [
+    await run_process(cmd, [
         ...cmd === "psql" ? psql_args : pg_restore_args
     ], {
         env: {
@@ -170,6 +170,7 @@ const restore_to_temp_db = async (config, temp_db_name, cmd, spinner) => {
         logger.error('Failed to restore backup to temp database', {
             status: 'failure',
             operation: 'restore_to_temp_db',
+            duration: `${((Date.now() - start_time) / 1000).toFixed(3)} s`,
             error: err.message,
         });
         spinner.fail('Failed to restore backup to temp database');
@@ -177,11 +178,16 @@ const restore_to_temp_db = async (config, temp_db_name, cmd, spinner) => {
     }).then(() => {
         spinner.succeed('Backup restored to temp database successfully in ' + ((Date.now() - start_time) / 1000).toFixed(3) + ' seconds!');
     });
+    logger.info('Backup restored to temp database successfully', {
+        status: 'success',
+        operation: 'restore_to_temp_db',
+        duration: `${((Date.now() - start_time) / 1000).toFixed(3)} s`
+    });
 };
 
-const rename_temp_db = (config, temp_db_name) => {
+const rename_temp_db = async (config, temp_db_name) => {
     try {
-        return run_process('psql', [
+        return await run_process('psql', [
             "-U", config.username,
             "-h", config.host,
             "-p", config.port,

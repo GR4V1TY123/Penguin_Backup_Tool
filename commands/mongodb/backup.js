@@ -57,14 +57,6 @@ const make_backup = async (config, backup_location, backup_spinner, backup_path,
 export const backup_cmd = async (config) => {
     const backup_spinner = ora('Creating backup...').start();
     const backup_path = path.resolve(`../backups/${config.type}/${config.database}`);
-    // const backup_fileType = await select({
-    //     message: 'Choose the backup file type:',
-    //     choices: [
-    //         { name: 'BSON (Binary JSON)', value: '.bson', description: 'BSON format (.bson), recommended for MongoDB' },
-    //         { name: 'JSON', value: '.json', description: 'JSON format (.json)' }
-    //     ]
-    // });
-    // const file_type = backup_fileType || '.bson';
 
     await make_backup_directory(config, backup_path);
     const file_name = `${config.database}_${new Date().toISOString().slice(0, 19).replace(/[-:]/g, '')}${'.archive.gz'}`;
