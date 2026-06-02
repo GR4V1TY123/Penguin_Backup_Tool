@@ -63,16 +63,7 @@ const make_backup_directory = (config) => {
 export const backup_cmd = async (config) => {
 
     const backup_spinner = ora('Creating Backup of ' + config.database + '...').start();
-    const backup_fileType = await select({
-        message: 'Choose the backup file type:',
-        choices: [
-            { name: 'SQL', value: '.sql', description: 'Plain SQL format (.sql)' },
-            { name: 'Custom Format (recommended)', value: '.dump', description: 'Custom format (.dump), (recommended for PostgreSQL)' },
-            { name: 'Directory Format', value: 'directory', description: 'Directory format (a directory with multiple files)', disabled: 'Not supported yet' },
-            { name: 'Tar Format', value: '.tar', description: 'Tar format (.tar)', disabled: 'Not supported yet' },
-        ]
-    });
-    const file_type = backup_fileType || '.dump';
+    const file_type = config.options.backup_file_type[config.type] || '.dump';
 
     const backup_path = path.resolve(`../backups/${config.type}/${config.database}`);
 
@@ -82,5 +73,5 @@ export const backup_cmd = async (config) => {
     await make_backup(config, backup_location, file_type, backup_spinner);
     backup_spinner.succeed('Backup Created Successfully!');
     await compress_backup(backup_location);
-    await uploadToS3(backup_location + '.gz', config);
+    await uploadToS3(backup_location + '.gz');
 };

@@ -4,7 +4,7 @@ import ora from "ora";
 import { logger } from './logger.js';
 import select, { Separator } from '@inquirer/select';
 import { filesize, partial } from "filesize";
-
+import config from "../config.json" with { type: "json" };
 
 const delete_raw_backup = async (backup_file) => {
     try {
@@ -44,15 +44,7 @@ export const compress_backup = async (backup_file) => {
                 duration: `${duration.toFixed(3)} s`
             });
 
-            const delete_raw_option = await select({
-                message: 'Would you like to delete the raw backup file?',
-                choices: [
-                    { name: 'Yes', value: 'yes' },
-                    { name: 'No', value: 'no' },
-                ]
-            });
-
-            if (delete_raw_option === 'yes') {
+            if (config.user.options.delete_raw_file) {
                 await delete_raw_backup(backup_file);
             }
 

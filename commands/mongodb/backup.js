@@ -8,6 +8,7 @@ import { logger } from "../../utils/logger.js";
 import fs from "fs";
 import { run_process } from "../../utils/run_process.js";
 import {filesize, partial} from "filesize";
+import { uploadToS3 } from "../../utils/s3_upload.js";
 
 const make_backup_directory = (config) => {
     try {
@@ -23,7 +24,7 @@ const make_backup_directory = (config) => {
     }
 }
 
-const make_backup = async (config, backup_location, backup_spinner, backup_path, file_name) => {
+const make_backup = async (config, backup_location, backup_spinner, file_name) => {
     try {
         const start_time = Date.now();
         await run_process('mongodump', [
@@ -61,6 +62,7 @@ export const backup_cmd = async (config) => {
     await make_backup_directory(config, backup_path);
     const file_name = `${config.database}_${new Date().toISOString().slice(0, 19).replace(/[-:]/g, '')}${'.archive.gz'}`;
     const backup_location = path.join(backup_path, file_name);
-    await make_backup(config, backup_location, backup_spinner, backup_path, file_name);
+    await make_backup(config, backup_location, backup_spinner, file_name);
     backup_spinner.succeed('Backup Created Successfully!');
+    await uploadToS3(backup_location);
 }

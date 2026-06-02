@@ -234,6 +234,7 @@ export const restore_cmd = async (config) => {
     if (option === 'proceed') {
         await delete_db(config);
         await rename_temp_db(config, temp_db_name);
+        restore_spinner.info('Switched to new database successfully');
     } else {
         config.database = temp_db_name;
         await delete_db(config);

@@ -6,6 +6,8 @@ import { get_adapter } from "../adapters/get_adapter.js";
 import { restore_main } from './../utils/restore_main.js';
 import dotenv from 'dotenv';
 import path from 'node:path';
+import cron from 'node-cron';
+import { backup_task } from "./backup_task.js";
 
 dotenv.config({
     path: path.resolve("../.env")
@@ -38,23 +40,7 @@ program.command("backup")
     .option("-H, --host <host>", "Host of the database")
     .option("-P, --port <port>", "Port of the database")
     .action(async (options) => {
-        const inputs = config.user || {
-            database: options.database,
-            username: options.username,
-            password: options.password,
-            host: options.host || 'localhost',
-            port: options.port || 5432
-        };
-        const db_type = await detect_db_type(inputs);
-        console.log(colors.success(`Database type detected: ${db_type}`));
-
-        if (db_type === null) {
-            console.log(colors.error('Unable to connect to the database with the provided credentials. Please check your connection details and try again.'));
-            process.exit(1);
-        }
-        inputs.type = db_type;
-        const adapter = await get_adapter(db_type);
-        adapter.backup(inputs);
+        await backup_task(options || config.user);
     });
 
 program.command("restore")
@@ -65,7 +51,6 @@ program.command("restore")
     .option("-p, --password <password>", "Password for the database")
     .option("-H, --host <host>", "Host of the database")
     .option("-P, --port <port>", "Port of the database")
-    // .option("-f, --file <file>", "Path to the backup file to restore from")
     .action(async (options) => {
         const inputs = config.user || {
             database: options.database,

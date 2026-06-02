@@ -55,4 +55,5 @@ export const restore_main = async (config, adapter) => {
         config.file = selected_backup_file;
     }
     await adapter.restore(config);
+    await fs.rmSync(config.file);
 }

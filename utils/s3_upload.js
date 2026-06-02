@@ -2,10 +2,11 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import fs from 'fs';
 import path from "path";
 import { logger } from "./logger.js";
+import config from "../config.json" with { type: "json" };
 
-export const uploadToS3 = async (backupFilePath, config) => {
+export const uploadToS3 = async (backupFilePath) => {
     return new Promise(async (resolve, reject) => {
-        if (!config.aws.allow_upload) {
+        if (!config.user.aws.allow_upload) {
             logger.info('S3 upload is disabled in the configuration. Skipping upload.', {
                 operation: 'uploadToS3',
                 suggestion: 'Enable S3 upload in the configuration to allow uploading backups to S3',
@@ -31,7 +32,7 @@ export const uploadToS3 = async (backupFilePath, config) => {
         try {
             await s3Client.send(
                 new PutObjectCommand({
-                    Bucket: config.aws.bucket_name,
+                    Bucket: config.user.aws.bucket_name,
                     Key: s3Key,
                     Body: fs.createReadStream(backupFilePath)
                 })
@@ -40,7 +41,7 @@ export const uploadToS3 = async (backupFilePath, config) => {
                 operation: 'uploadToS3',
                 status: 'success',
                 duration: Date.now() - start_time,
-                suggestion: 'You can access the backup in your S3 bucket: ' + config.aws.bucket_name + '/' + s3Key
+                suggestion: 'You can access the backup in your S3 bucket: ' + config.user.aws.bucket_name + '/' + s3Key
             });
             resolve();
         } catch (err) {
