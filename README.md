@@ -1,60 +1,62 @@
-# Database Backup Utility
+# Penguin Database Backup Utility
 
-A cross-database command-line utility built with Node.js for managing database backups and restores.
+A cross-database backup and recovery CLI built with Node.js for PostgreSQL and MongoDB.
 
-The tool provides a unified interface for PostgreSQL and MongoDB, supporting backup creation, restoration, validation, compression, logging, and safe recovery workflows.
+Penguin provides a unified workflow for creating backups, restoring databases, compressing backup files, uploading backups to AWS S3, scheduling automated backups, and sending email notifications.
 
 ---
 
 ## Features
 
-### Backup
+### Backup & Restore
 
-* Create PostgreSQL backups
-* Create MongoDB backups
-* Automatic timestamped backup naming
-* Backup compression support
-* Backup validation
+- Create PostgreSQL backups
+- Create MongoDB backups
+- Restore databases from backup files
+- Automatic timestamp-based backup naming
+- Support for compressed backup files
 
-### Restore
+### Safe Restore Workflow
 
-* Restore databases from backup files
-* Support for compressed backups
-* Full database restoration
-* Recovery workflow validation
+- Restore backups into a temporary database
+- Compare restored data with the existing database
+- Review differences before applying changes
+- Rollback support through temporary database validation
 
-### Safe Restore
+### Compression
 
-* Restore into a temporary database
-* Compare restored database with the current database
-* User confirmation before switching
-* Rollback support if restore validation fails
+- Compress backup files using Gzip
+- Optional removal of raw backup files after compression
+- Reduced storage requirements
 
-### Connection Testing
+### AWS S3 Integration
 
-* Validate database credentials before operations
-* Detect connection failures
-* Authentication error handling
-* Network error handling
+- Upload backups directly to an AWS S3 bucket
+- Preserve backup directory structure in cloud storage
+- Optional upload configuration
+
+### Email Notifications
+
+- Send email notifications after backup operations
+- Success and failure status reporting
+
+### Scheduled Backups
+
+- Automated backup execution using cron schedules
+- Configurable backup intervals through configuration files
 
 ### Logging
 
-* Structured logging using Winston
-* Operation tracking
-* Error logging
-* Backup and restore duration tracking
-
-### Configuration
-
-* Environment variable support
-* Command-line configuration
-* Input validation
+- Structured logging using Winston
+- Operation status tracking
+- Error logging
+- Backup and restore duration tracking
 
 ### Multi-Database Support
 
-* PostgreSQL
-* MongoDB
-* Adapter-based architecture for future database support
+- PostgreSQL
+- MongoDB
+- Adapter-based architecture for future database support
 
 ---
 
@@ -62,75 +64,151 @@ The tool provides a unified interface for PostgreSQL and MongoDB, supporting bac
 
 | Database   | Backup | Restore |
 | ---------- | ------ | ------- |
-| PostgreSQL | ✅      | ✅       |
-| MongoDB    | ✅      | 🚧       |
+| PostgreSQL | ✅ | ✅ |
+| MongoDB    | ✅ | ✅ |
 
 ---
 
 ## Installation
 
+### Clone the repository
+
 ```bash
-git clone https://github.com/your-username/database-backup-utility.git
+git clone https://github.com/GR4V1TY123/Penguin_Backup_Tool.git
 
-cd database-backup-utility
+cd penguin
+```
 
+### Install dependencies
+
+```bash
 npm install
+```
+
+### Install required database tools
+
+#### PostgreSQL
+
+Install PostgreSQL and ensure the following commands are available in your system PATH:
+
+```bash
+pg_dump
+pg_restore
+psql
+```
+
+#### MongoDB
+
+Install MongoDB Database Tools and ensure the following commands are available in your system PATH:
+
+```bash
+mongodump
+mongorestore
+```
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+AWS_REGION=ap-south-1
+AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY
+AWS_SECRET_ACCESS_KEY=YOUR_SECRET_KEY
+
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+```
+
+---
+
+## Configuration
+
+Example configuration:
+
+```json
+{
+  "user": {
+    "username": "postgres",
+    "password": "password",
+    "host": "localhost",
+    "port": 5432,
+    "database": "Office",
+
+    "aws": {
+      "allow_upload": true,
+      "bucket_name": "penguin-backups"
+    },
+
+    "options": {
+      "notification": {
+        "enabled": true,
+        "email": "example@gmail.com"
+      },
+
+      "delete_raw_file": true,
+
+      "cron": {
+        "enabled": true,
+        "schedule": "0 0 * * *"
+      }
+    }
+  }
+}
 ```
 
 ---
 
 ## Usage
 
-### Backup
+### Create a Backup
+
+```bash
+node index.js backup
+```
+
+Or provide connection details:
 
 ```bash
 node index.js backup \
 -u postgres \
--p mypassword \
+-p password \
 -H localhost \
 -P 5432 \
--d mydatabase
-```
-
-### Restore
-
-```bash
-node index.js restore \
--u postgres \
--p mypassword \
--H localhost \
--P 5432 \
--d mydatabase
-```
-
-### Test Connection
-
-```bash
-node index.js test \
--u postgres \
--p mypassword \
--H localhost \
--P 5432 \
--d mydatabase
-```
-
-### List Backups
-
-```bash
-node index.js list
+-d Office
 ```
 
 ---
 
-## Example Backup Structure
+### Restore a Backup
+
+```bash
+node index.js restore
+```
+
+Or provide connection details:
+
+```bash
+node index.js restore \
+-u postgres \
+-p password \
+-H localhost \
+-P 5432 \
+-d Office
+```
+
+---
+
+## Backup Structure
 
 ### PostgreSQL
 
 ```text
 backups/
 └── postgres/
-    └── company_db/
-        └── backup_postgres_company_db_20260530T142715.dump.gz
+    └── Office/
+        └── postgres_Office_20260604T142733.sql.gz
 ```
 
 ### MongoDB
@@ -139,7 +217,7 @@ backups/
 backups/
 └── mongodb/
     └── world/
-        └── world_20260530T142715.archive.gz
+        └── world_20260604T142733.archive.gz
 ```
 
 ---
@@ -156,9 +234,6 @@ Create Temporary Database
 Restore Backup
         │
         ▼
-Validate Restore
-        │
-        ▼
 Compare Databases
         │
         ▼
@@ -168,58 +243,36 @@ User Confirmation
  ▼             ▼
 Proceed     Rollback
  ▼             ▼
-Switch DB   Delete Temp DB
-```
-
----
-
-## Project Structure
-
-```text
-src/
-├── adapters/
-│   ├── postgres.js
-│   └── mongodb.js
-│
-├── commands/
-│   ├── backup/
-│   ├── restore/
-│   ├── test/
-│   └── list/
-│
-├── utils/
-│   ├── logger.js
-│   ├── run_process.js
-│   └── detect_db_type.js
-│
-└── index.js
+Apply       Delete Temp DB
+Restore
 ```
 
 ---
 
 ## Technologies Used
 
-* Node.js
-* Commander
-* PostgreSQL
-* MongoDB
-* Winston
-* Inquirer
-* Ora
-* Child Process API
-* Gzip Compression
+- Node.js
+- Commander
+- PostgreSQL
+- MongoDB
+- Winston
+- Inquirer
+- Ora
+- AWS SDK
+- Nodemailer
+- node-cron
+- Child Process API
+- Gzip Compression
 
 ---
 
 ## Future Improvements
 
-* MySQL Support
-* SQLite Support
-* Scheduled Backups
-* Cloud Storage Integration
-* Backup Encryption
-* Backup Integrity Verification
-* Differential Backups
+- MySQL Support
+- SQLite Support
+- Backup Encryption
+- Backup Integrity Verification
+- Differential Backups
 
 ---
 
