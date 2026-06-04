@@ -9,6 +9,7 @@ import fs from "fs";
 import { run_process } from "../../utils/run_process.js";
 import {filesize, partial} from "filesize";
 import { uploadToS3 } from "../../utils/s3_upload.js";
+import { send_email } from "../../utils/mailer.js";
 
 const make_backup = async (config, backup_location, file_type, backup_spinner) => {
     try {
@@ -74,4 +75,10 @@ export const backup_cmd = async (config) => {
     backup_spinner.succeed('Backup Created Successfully!');
     await compress_backup(backup_location);
     await uploadToS3(backup_location + '.gz');
+    await send_email({
+        to: config.options.notification.email,
+        subject: `Backup Created: ${config.database}`,
+        text: `A backup of the database ${config.database} was created successfully.`,
+        html: `<p>A backup of the database <strong>${config.database}</strong> for <strong>${config.type}</strong> was created successfully.</p><p>File Size: <strong>${filesize(fs.statSync(backup_location + '.gz').size)}</strong></p><p>You can find the backup at: <strong>${backup_location}.gz</strong></p>`
+    });
 };

@@ -21,9 +21,4 @@ export const backup_main = async (options) => {
     inputs.type = db_type;
     const adapter = await get_adapter(db_type);
     await adapter.backup(inputs);
-    await send_email({
-        to: inputs.options.notification.email,
-        subject: `Backup Created for ${inputs.database}`,
-        text: `A backup of your database ${inputs.database} has been created successfully.`
-    });
 }

@@ -36,7 +36,7 @@ program
     .addHelpText(
         "beforeAll",
         `
-${"🐧 Penguin Database Backup Utility".success}
+${"Penguin Database Backup Utility".success}
 
 ${"Features".help}
   • Backup & Restore
@@ -79,11 +79,11 @@ program.command("restore")
         await restore_main(options);
     });
 
-program.command("listdb")
-    .description("List all available databases")
-    .version("1.0.0")
-    .action(() => {
-        // logger.info("Listing all available databases...");
-    });
+// program.command("listdb")
+//     .description("List all available databases")
+//     .version("1.0.0")
+//     .action(() => {
+//         // logger.info("Listing all available databases...");
+//     });
 
 program.parse();

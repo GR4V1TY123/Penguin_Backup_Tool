@@ -7,7 +7,7 @@ import path from "node:path";
 import { logger } from "../../utils/logger.js";
 import fs from "fs";
 import { run_process } from "../../utils/run_process.js";
-import {filesize, partial} from "filesize";
+import { filesize, partial } from "filesize";
 import { uploadToS3 } from "../../utils/s3_upload.js";
 
 const make_backup_directory = (config) => {
@@ -65,4 +65,10 @@ export const backup_cmd = async (config) => {
     await make_backup(config, backup_location, backup_spinner, file_name);
     backup_spinner.succeed('Backup Created Successfully!');
     await uploadToS3(backup_location);
+    await send_email({
+        to: config.options.notification.email,
+        subject: `Backup Created: ${config.database}`,
+        text: `A backup of the database ${config.database} was created successfully.`,
+        html: `<p>A backup of the database <strong>${config.database}</strong> for <strong>${config.type}</strong> was created successfully.</p><p>File Size: <strong>${filesize(fs.statSync(backup_location + '.gz').size)}</strong></p><p>You can find the backup at: <strong>${backup_location}.gz</strong></p>`
+    });
 }
