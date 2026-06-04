@@ -1,9 +1,11 @@
 import colors from 'colors';
-import { get_adapter } from './../adapters/get_adapter.js';
-import { detect_db_type } from './../utils/detect_db.js';
+import { get_adapter } from '../adapters/get_adapter.js';
+import { detect_db_type } from './detect_db.js';
+import config from "../config.json" with { type: "json" };
+import { send_email } from './mailer.js';
 
-export const backup_task = async (options) => {
-    const inputs = {
+export const backup_main = async (options) => {
+    const inputs = config.user ||{
         database: options.database,
         username: options.username,
         password: options.password,
@@ -18,5 +20,10 @@ export const backup_task = async (options) => {
     }
     inputs.type = db_type;
     const adapter = await get_adapter(db_type);
-    adapter.backup(inputs);
+    await adapter.backup(inputs);
+    await send_email({
+        to: inputs.options.notification.email,
+        subject: `Backup Created for ${inputs.database}`,
+        text: `A backup of your database ${inputs.database} has been created successfully.`
+    });
 }

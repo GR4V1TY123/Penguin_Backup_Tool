@@ -12,7 +12,7 @@ export const uploadToS3 = async (backupFilePath) => {
                 suggestion: 'Enable S3 upload in the configuration to allow uploading backups to S3',
                 status: 'skipped'
             });
-            return;
+            resolve();
         }
         const start_time = Date.now();
         const region = process.env.AWS_REGION;

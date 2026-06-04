@@ -7,7 +7,7 @@ import { restore_main } from './../utils/restore_main.js';
 import dotenv from 'dotenv';
 import path from 'node:path';
 import cron from 'node-cron';
-import { backup_task } from "./backup_task.js";
+import { backup_main } from '../utils/backup_main.js';
 
 dotenv.config({
     path: path.resolve("../.env")
@@ -40,7 +40,7 @@ program.command("backup")
     .option("-H, --host <host>", "Host of the database")
     .option("-P, --port <port>", "Port of the database")
     .action(async (options) => {
-        await backup_task(options || config.user);
+        await backup_main(options);
     });
 
 program.command("restore")
@@ -52,22 +52,7 @@ program.command("restore")
     .option("-H, --host <host>", "Host of the database")
     .option("-P, --port <port>", "Port of the database")
     .action(async (options) => {
-        const inputs = config.user || {
-            database: options.database,
-            username: options.username,
-            password: options.password,
-            host: options.host || 'localhost',
-            port: options.port || 5432,
-            // file: options.file
-        };
-        const db_type = await detect_db_type(inputs);
-        if (db_type === null) {
-            console.log(colors.error('Unable to connect to the database with the provided credentials. Please check your connection details and try again.'));
-            process.exit(1);
-        }
-        inputs.type = db_type;
-        const adapter = await get_adapter(db_type);
-        await restore_main(inputs, adapter);
+        await restore_main(options);
     });
 
 program.command("listdb")
