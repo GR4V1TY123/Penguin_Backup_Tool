@@ -10,7 +10,8 @@ import cron from 'node-cron';
 import { backup_main } from '../utils/backup_main.js';
 
 dotenv.config({
-    path: path.resolve("../.env")
+    path: path.resolve("../.env"),
+    quiet: true
 });
 
 colors.setTheme({
@@ -28,11 +29,34 @@ colors.setTheme({
 
 program
     .name("penguin")
-    .description("A CLI tool for managing your projects")
-    .version("1.0.0");
+    .description(
+        "Cross-database backup & recovery CLI with safe restore support."
+    )
+    .version("1.0.0")
+    .addHelpText(
+        "beforeAll",
+        `
+${"🐧 Penguin Database Backup Utility".success}
+
+${"Features".help}
+  • Backup & Restore
+  • PostgreSQL Support
+  • MongoDB Support
+  • Compression (.gz)
+  • AWS S3 Uploads
+  • Email Notifications
+  • Scheduled Backups (Cron)
+  • Safe Restore & Rollback
+
+${"Examples".help}
+  penguin backup
+  penguin restore
+  penguin backup -d world -u postgres -H localhost -P 5432
+`
+    );
 
 program.command("backup")
-    .description("Create a backup of your database")
+    .description("Create a compressed backup of a PostgreSQL or MongoDB database")
     .version("1.0.0")
     .option("-d, --database <database>", "Name of the database to backup")
     .option("-u, --username <username>", "Username for the database")
@@ -44,7 +68,7 @@ program.command("backup")
     });
 
 program.command("restore")
-    .description("Restore your database from a backup")
+    .description("Restore a database from an existing backup")
     .version("1.0.0")
     .option("-d, --database <database>", "Name of the database to restore")
     .option("-u, --username <username>", "Username for the database")
