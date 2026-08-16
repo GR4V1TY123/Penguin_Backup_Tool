@@ -9,6 +9,7 @@ import fs from "fs";
 import { run_process } from "../../utils/run_process.js";
 import { filesize, partial } from "filesize";
 import { uploadToS3 } from "../../utils/s3_upload.js";
+import { send_email } from "../../utils/mailer.js";
 
 const make_backup_directory = (config) => {
     try {
