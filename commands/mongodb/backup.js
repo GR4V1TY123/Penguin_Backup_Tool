@@ -70,6 +70,6 @@ export const backup_cmd = async (config) => {
         to: config.options.notification.email,
         subject: `Backup Created: ${config.database}`,
         text: `A backup of the database ${config.database} was created successfully.`,
-        html: `<p>A backup of the database <strong>${config.database}</strong> for <strong>${config.type}</strong> was created successfully.</p><p>File Size: <strong>${filesize(fs.statSync(backup_location + '.gz').size)}</strong></p><p>You can find the backup at: <strong>${backup_location}.gz</strong></p>`
+        html: `<p>A backup of the database <strong>${config.database}</strong> for <strong>${config.type}</strong> was created successfully.</p><p>File Size: <strong>${filesize(fs.statSync(backup_location).size)}</strong></p><p>You can find the backup at: <strong>${backup_location}.gz</strong></p>`
     });
 }
